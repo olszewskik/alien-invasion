@@ -2,6 +2,7 @@ import sys
 import pygame
 from settings import Settings
 from rocket import Rocket
+from alien import Alien
 from bullet import Bullet
 
 
@@ -25,6 +26,9 @@ class AlienInvasion:
 
         self.rocket = Rocket(self)
         self.bullets = pygame.sprite.Group()
+        self.aliens = pygame.sprite.Group()
+
+        self._create_fleet()
 
     def run_game(self):
         """Starting the main game loop"""
@@ -68,6 +72,12 @@ class AlienInvasion:
             new_bullet = Bullet(self)
             self.bullets.add(new_bullet)
 
+    def _create_fleet(self):
+        """Create a complete aliens fleet"""
+        # Create alien
+        alien = Alien(self)
+        self.aliens.add(alien)
+
     def _update_screen(self):
         """Updates the images on the screen and goes to a new screen"""
         self.screen.fill(self.settings.bg_color)
@@ -75,6 +85,7 @@ class AlienInvasion:
 
         for bullet in self.bullets.sprites():
             bullet.draw_bullet()
+        self.aliens.draw(self.screen)
 
         pygame.display.flip()
 
