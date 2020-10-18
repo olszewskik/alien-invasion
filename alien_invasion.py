@@ -18,7 +18,7 @@ class AlienInvasion:
 
         # Full screen mode --> START
         # self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-        # 3self.settings.screen_width = self.screen.get_rect().width
+        # self.settings.screen_width = self.screen.get_rect().width
         # self.settings.scree_height = self.screen.get_rect().height
         # Full screen mode --> STOP
 
@@ -36,6 +36,7 @@ class AlienInvasion:
             self._check_events()
             self.rocket.update()
             self._update_bullets()
+            self._update_aliens()
             self._update_screen()
 
     def _check_events(self):
@@ -74,9 +75,44 @@ class AlienInvasion:
 
     def _create_fleet(self):
         """Create a complete aliens fleet"""
-        # Create alien
+        # Create an alien and determine the number of aliens that will fit in the row.
+        # The distance between each alien is equal to the width of the alien.
         alien = Alien(self)
+        alien_width, alien_height = alien.rect.size
+        available_space_x = self.settings.screen_width - (2 * alien_width)
+        number_aliens_x = available_space_x // (2 * alien_width)
+
+        # Determine how many rows of aliens will fit on the screen
+        rocket_height = self.rocket.rect.height
+        available_space_y = (self.settings.scree_height - (3 * alien_height) - rocket_height)
+        number_rows = available_space_y // (2 * alien_height)
+
+        # Create a complete aliens fleet
+        for row_number in range(number_rows):
+            for alien_number in range(number_aliens_x):
+                self._create_alien(alien_number, row_number)
+
+    def _create_alien(self, alien_number, row_number):
+        """Create an alien and place it in a row"""
+        alien = Alien(self)
+        alien_width, alien_height = alien.rect.size
+        alien.x = alien_width + 2 * alien_width * alien_number
+        alien.rect.x = alien.x
+        alien.rect.y = alien.rect.height + 2 * alien.rect.height * row_number
         self.aliens.add(alien)
+
+    def _check_fleet_edges(self):
+        """The right response when an alien reaches the edge of the screen"""
+        for alien in self.aliens.sprites():
+            if alien.check_edges():
+                self._change_fleet_direction()
+                break
+
+    def _change_fleet_direction(self):
+        """Moving the entire fleet down and changing the direction in which it is moving"""
+        for alien in self.aliens.sprites():
+            alien.rect.y += self.settings.fleet_drop_speed
+        self.settings.fleet_direction *= -1
 
     def _update_screen(self):
         """Updates the images on the screen and goes to a new screen"""
@@ -98,6 +134,11 @@ class AlienInvasion:
         for bullet in self.bullets.copy():
             if bullet.rect.bottom <= 0:
                 self.bullets.remove(bullet)
+
+    def _update_aliens(self):
+        """Checking if the alien fleet is at the edge, then updating the position of all aliens in the fleet"""
+        self._check_fleet_edges()
+        self.aliens.update()
 
 
 if __name__ == '__main__':
